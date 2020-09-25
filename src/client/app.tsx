@@ -1,16 +1,18 @@
 import React from 'react';
-import './app.css';
 
-function App() {
+// components
+import Main from './component/main';
+
+// styles
+import './app.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+const App: React.FunctionComponent = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-      </header>
+    <div className="page">
+      <Main />
     </div>
   );
-}
+};
 
 export default App;
