@@ -5,7 +5,6 @@ import path from 'path';
 import apiRouter from './apiRouter';
 import connect from './connect';
 
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.khu1q.mongodb.net/${process.env.MONGO_DB}`;
 const app: Application = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,7 +17,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'build', 'index.html'));
 });
 
-connect(uri);
+connect();
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
