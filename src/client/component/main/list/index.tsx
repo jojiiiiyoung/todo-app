@@ -1,15 +1,16 @@
 /* eslint-disable react/no-array-index-key */
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Check2Square, Square } from 'react-bootstrap-icons';
 import TodoApi from '../../../api/todo';
+import { ActionTypes, store } from '../../../store';
 import { formatDate } from '../../../utils';
 import Pagination from './pagination';
 import Plus from './plus';
 
 interface ITodoItemProps {
   data: ITodoItem;
-  onComplete: (id: string) => Promise<boolean>;
-  onUncomplete: (id: string) => Promise<boolean>;
+  onComplete: (id: string) => void;
+  onUncomplete: (id: string) => void;
 }
 
 const TodoItem: React.FunctionComponent<ITodoItemProps> = ({
@@ -17,25 +18,17 @@ const TodoItem: React.FunctionComponent<ITodoItemProps> = ({
   onComplete,
   onUncomplete,
 }: ITodoItemProps) => {
-  const [isComplete, setComplete] = useState<boolean>(data.isComplete);
-
   const handleComplete = () => {
-    setComplete(true);
-    onComplete(data._id).then((res) => {
-      setComplete(res);
-    });
+    onComplete(data._id);
   };
 
   const handleUncomplete = () => {
-    setComplete(false);
-    onUncomplete(data._id).then((res) => {
-      setComplete(!res);
-    });
+    onUncomplete(data._id);
   };
 
   return (
     <p>
-      {isComplete ? <Check2Square onClick={handleUncomplete} /> : <Square onClick={handleComplete} />}
+      {data.isComplete ? <Check2Square onClick={handleUncomplete} /> : <Square onClick={handleComplete} />}
       <span className="pl-3 task mt-4">{content}</span>
       <span className="float-right">{formatDate(createdAt)}</span>
     </p>
@@ -43,27 +36,30 @@ const TodoItem: React.FunctionComponent<ITodoItemProps> = ({
 };
 
 const List: React.FunctionComponent = () => {
-  const [list, setList] = useState<ITodoItem[]>([]);
+  const { data: list, dispatch } = useContext(store);
 
   useEffect(() => {
     TodoApi.getTodos().then((res) => {
-      setList(res.data || []);
+      dispatch?.({ type: ActionTypes.GET_TODO_LIST, payload: { data: res.data || [] } });
     });
-  }, []);
+  }, [dispatch]);
 
   const handleAdd = (content: string) => {
     TodoApi.addTodo(content).then((res) => {
-      setList([...list, res.data]);
+      dispatch?.({ type: ActionTypes.ADD_TODO, payload: { todo: res.data } });
     });
   };
 
-  const handleComplete = async (id: string) => {
-    const res = await TodoApi.completeTodo(id);
-    return res.status === 200;
+  const handleComplete = (id: string) => {
+    TodoApi.completeTodo(id).then((res) => {
+      if (res.status === 200) {
+        dispatch?.({ type: ActionTypes.COMPLETE_TODO, payload: { id } });
+      }
+    });
   };
 
-  const handleUnComplete = () => {
-    return Promise.resolve(true);
+  const handleUnComplete = (id: string) => {
+    dispatch?.({ type: ActionTypes.UNCOMPLETE_TODO, payload: { id } });
   };
 
   return (

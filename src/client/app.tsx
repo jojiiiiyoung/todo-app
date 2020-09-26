@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { StateProvider } from './store';
+
 // components
 import Main from './component/main';
 
@@ -9,9 +11,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App: React.FunctionComponent = () => {
   return (
-    <div className="page">
-      <Main />
-    </div>
+    <StateProvider>
+      <div className="page">
+        <Main />
+      </div>
+    </StateProvider>
   );
 };
 
