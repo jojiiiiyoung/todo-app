@@ -37,7 +37,7 @@ export default class Api {
 
   protected static patch(url: string, data: any): AxiosPromise {
     return this.axios()
-      .put(`${BASE_URI}${url}`, data)
+      .patch(`${BASE_URI}${url}`, data)
       .catch((err: AxiosError) => {
         errorHandler(err);
         return Promise.reject(err);

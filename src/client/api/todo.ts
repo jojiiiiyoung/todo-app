@@ -9,4 +9,8 @@ export default class TodoApi extends Api {
   public static getTodos(): AxiosPromise<ITodoItem[]> {
     return Api.get('/todos');
   }
+
+  public static completeTodo(id: string): AxiosPromise<undefined> {
+    return Api.patch(`/todos/${id}`, { isComplete: true });
+  }
 }

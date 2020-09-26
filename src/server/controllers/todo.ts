@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
-import Todo from '../models/todo';
+import { Document } from 'mongoose';
+import { send } from 'process';
+import Todo, { TodoInterface } from '../models/todo';
 
 export const allTodos = (_req: Request, res: Response) => {
   // eslint-disable-next-line array-callback-return
-  Todo.find((err: any, todos: any) => {
+  Todo.find((err: any, todos: TodoInterface) => {
     if (err) {
       res.sendStatus(500);
       console.log(err);
@@ -15,7 +17,7 @@ export const allTodos = (_req: Request, res: Response) => {
 };
 
 export const getTodo = (req: Request, res: Response) => {
-  Todo.findById(req.params.id, (err: any, todo: any) => {
+  Todo.findById(req.params.id, (err: any, todo: TodoInterface) => {
     if (err) {
       res.sendStatus(500);
       console.log(err);
@@ -25,15 +27,16 @@ export const getTodo = (req: Request, res: Response) => {
   });
 };
 
-export const addTodo = (req: Request, res: Response) => {
-  const todo = new Todo({ content: req.body.content });
+export const addTodo = async (req: Request, res: Response) => {
+  const count = await Todo.countDocuments();
+  const todo = new Todo({ content: req.body.content, id: count });
   try {
-    todo.save((err: any, t: any) => {
+    todo.save((err: any, t: Document) => {
       if (err) {
         res.sendStatus(500);
         console.log(err);
       } else {
-        res.send(t);
+        res.status(201).send(t);
       }
     });
   } catch (e) {
@@ -42,15 +45,41 @@ export const addTodo = (req: Request, res: Response) => {
   }
 };
 
-export const updateTodo = (req: Request, res: Response) => {
-  Todo.findByIdAndUpdate(req.params.id, req.body, (err: any, todo: any) => {
-    if (err) {
-      res.sendStatus(500);
-      console.log(err);
+export const updateTodo = async (req: Request, res: Response) => {
+  const { isComplete } = req.body;
+
+  if (isComplete !== undefined) {
+    const todo: any = await Todo.findById(req.params.id)
+      .populate('related', {
+        isComplete: 1,
+      })
+      .lean();
+
+    if (isComplete) {
+      if (todo.related.some((t: TodoInterface) => !t.isComplete)) {
+        res.sendStatus(400);
+      } else {
+        Todo.findByIdAndUpdate(req.params.id, req.body, (err: any) => {
+          if (err) {
+            res.sendStatus(500);
+          } else {
+            res.sendStatus(200);
+          }
+        });
+      }
     } else {
-      res.send(todo);
+      res.sendStatus(200);
     }
-  });
+  } else {
+    Todo.findByIdAndUpdate(req.params.id, req.body, (err: any, todo: any) => {
+      if (err) {
+        res.sendStatus(500);
+        console.log(err);
+      } else {
+        res.send(todo);
+      }
+    });
+  }
 };
 
 export const deleteTodo = (req: Request, res: Response) => {

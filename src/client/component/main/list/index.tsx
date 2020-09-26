@@ -6,17 +6,41 @@ import { formatDate } from '../../../utils';
 import Pagination from './pagination';
 import Plus from './plus';
 
-const TodoItem: React.FunctionComponent<{ data: ITodoItem }> = ({
-  data: { isComplete, content, createdAt },
-}: {
+interface ITodoItemProps {
   data: ITodoItem;
-}) => (
-  <p>
-    {isComplete ? <Check2Square /> : <Square />}
-    <span className="pl-3 task mt-4">{content}</span>
-    <span className="float-right">{formatDate(createdAt)}</span>
-  </p>
-);
+  onComplete: (id: string) => Promise<boolean>;
+  onUncomplete: (id: string) => Promise<boolean>;
+}
+
+const TodoItem: React.FunctionComponent<ITodoItemProps> = ({
+  data: { content, createdAt, ...data },
+  onComplete,
+  onUncomplete,
+}: ITodoItemProps) => {
+  const [isComplete, setComplete] = useState<boolean>(data.isComplete);
+
+  const handleComplete = () => {
+    setComplete(true);
+    onComplete(data._id).then((res) => {
+      setComplete(res);
+    });
+  };
+
+  const handleUncomplete = () => {
+    setComplete(false);
+    onUncomplete(data._id).then((res) => {
+      setComplete(!res);
+    });
+  };
+
+  return (
+    <p>
+      {isComplete ? <Check2Square onClick={handleUncomplete} /> : <Square onClick={handleComplete} />}
+      <span className="pl-3 task mt-4">{content}</span>
+      <span className="float-right">{formatDate(createdAt)}</span>
+    </p>
+  );
+};
 
 const List: React.FunctionComponent = () => {
   const [list, setList] = useState<ITodoItem[]>([]);
@@ -33,13 +57,22 @@ const List: React.FunctionComponent = () => {
     });
   };
 
+  const handleComplete = async (id: string) => {
+    const res = await TodoApi.completeTodo(id);
+    return res.status === 200;
+  };
+
+  const handleUnComplete = () => {
+    return Promise.resolve(true);
+  };
+
   return (
     <>
       <div className="card">
         <div className="card-body">
           <Plus onAdd={handleAdd} />
           {list.map((item, index) => (
-            <TodoItem data={item} key={index} />
+            <TodoItem data={item} key={index} onComplete={handleComplete} onUncomplete={handleUnComplete} />
           ))}
         </div>
       </div>
