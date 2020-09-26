@@ -1,6 +1,6 @@
 interface ITodoItem {
   id: number;
   isComplete: boolean;
-  contents: string;
+  content: string;
   createdAt: number;
 }
