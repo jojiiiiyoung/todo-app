@@ -3,5 +3,6 @@ interface ITodoItem {
   id: number;
   isComplete: boolean;
   content: string;
+  related: number[];
   createdAt: number;
 }

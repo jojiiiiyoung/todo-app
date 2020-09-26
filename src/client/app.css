@@ -19,3 +19,20 @@ button {
   right: 0;
   top: 0;
 }
+
+#popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+.modal-open {
+  overflow: hidden;
+}
+.popup-wrapper {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: scroll;
+}
