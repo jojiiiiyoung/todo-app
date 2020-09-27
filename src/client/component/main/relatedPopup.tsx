@@ -10,18 +10,18 @@ import { IPopupOptions } from '../common/popup/manager';
 const TodoItem = ({
   data,
   isSelected,
-  isCurrent,
+  current,
   onDeselect,
   onSelect,
 }: {
   data: ITodoItem;
-  isCurrent: boolean;
+  current: ITodoItem;
   isSelected: boolean;
   onSelect: (id: string) => void;
   onDeselect: (id: string) => void;
 }) => {
   const icon = useMemo(() => {
-    if (isCurrent) {
+    if (current._id === data._id || data.related.findIndex((related) => related._id === current._id) >= 0) {
       return <XSquareFill />;
     }
 
@@ -30,7 +30,7 @@ const TodoItem = ({
     }
 
     return <Square onClick={() => onSelect(data._id)} />;
-  }, [isCurrent, isSelected, onDeselect, data._id, onSelect]);
+  }, [current._id, data._id, data.related, isSelected, onDeselect, onSelect]);
 
   return (
     <p>
@@ -61,7 +61,7 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
       {list.map((item) => (
         <TodoItem
           key={item._id}
-          isCurrent={item._id === current._id}
+          current={current}
           isSelected={selected.includes(item._id)}
           data={item}
           onSelect={(id: string) => setSelected([...selected, id])}
