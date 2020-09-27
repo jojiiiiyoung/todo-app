@@ -51,6 +51,12 @@ const List: React.FunctionComponent = () => {
     });
   };
 
+  const handleDelete = (id: string) => {
+    TodoApi.deleteTodo(id).then(() => {
+      dispatch?.({ type: ActionTypes.DELETE_TODO, payload: { id } });
+    });
+  };
+
   return (
     <>
       <div className="card">
@@ -63,6 +69,7 @@ const List: React.FunctionComponent = () => {
               onComplete={handleComplete}
               onUncomplete={handleUnComplete}
               onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           ))}
         </div>

@@ -17,6 +17,7 @@ export enum ActionTypes {
   UNCOMPLETE_TODO = 'UNCOMPLETE_TODO',
   UPDATE_RELATED_LIST = 'UPDATE_RELATED_LIST',
   UPDATE_CONTENT = 'UPDATE_CONTENT',
+  DELETE_TODO = 'DELETE_TODO',
 }
 
 const StateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -108,6 +109,12 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         return originState;
+      }
+      case ActionTypes.DELETE_TODO: {
+        return {
+          ...originState,
+          data: originState.data.filter((item) => item._id !== action.payload.id),
+        };
       }
       default:
         throw new Error();

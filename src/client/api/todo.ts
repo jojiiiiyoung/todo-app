@@ -25,4 +25,8 @@ export default class TodoApi extends Api {
   public static updateContent(id: string, content: string): AxiosPromise<undefined> {
     return Api.patch(`/todos/${id}`, { content });
   }
+
+  public static deleteTodo(id: string): AxiosPromise<undefined> {
+    return Api.delete(`/todos/${id}`);
+  }
 }

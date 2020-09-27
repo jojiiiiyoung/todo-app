@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check2Square, PencilFill, PlusCircle, Square } from 'react-bootstrap-icons';
+import { Check2Square, PencilFill, PlusCircle, Square, TrashFill } from 'react-bootstrap-icons';
 import { formatDate } from '../../../utils';
 import openRelatedPopup from '../relatedPopup';
 
@@ -8,6 +8,7 @@ interface IProps {
   onComplete: (id: string) => void;
   onUncomplete: (id: string) => void;
   onEdit: (id: string, content: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const EditInput = ({ content: origin, onEdit }: { content: string; onEdit: (content: string) => void }) => {
@@ -23,7 +24,7 @@ const EditInput = ({ content: origin, onEdit }: { content: string; onEdit: (cont
 
   return (
     <>
-      <input type="text" className="px-3 py-1" value={content} onChange={handleChnage} />
+      <input type="text" className="p-1 flex-fill" value={content} onChange={handleChnage} />
       <button className="btn btn-outline-secondary mr-2" type="button" onClick={edit}>
         수정
       </button>
@@ -31,7 +32,7 @@ const EditInput = ({ content: origin, onEdit }: { content: string; onEdit: (cont
   );
 };
 
-const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncomplete, onEdit }: IProps) => {
+const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncomplete, onEdit, onDelete }: IProps) => {
   const [edit, setEdit] = useState<boolean>(false);
   const handleComplete = () => {
     onComplete(data._id);
@@ -50,9 +51,9 @@ const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncompl
     <div>
       <div className="d-flex align-items-center">
         {data.isComplete ? (
-          <Check2Square className="pr-2" onClick={handleUncomplete} />
+          <Check2Square className="mr-2" onClick={handleUncomplete} />
         ) : (
-          <Square className="pr-2" onClick={handleComplete} />
+          <Square className="mr-2" onClick={handleComplete} />
         )}
         {edit ? (
           <EditInput content={data.content} onEdit={handleEdit} />
@@ -61,7 +62,8 @@ const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncompl
         )}
         <span>
           <span className="mr-2">{formatDate(data.createdAt)}</span>
-          <PencilFill onClick={() => setEdit(true)} />
+          <PencilFill className="mx-2" onClick={() => setEdit(true)} />
+          <TrashFill onClick={() => onDelete(data._id)} />
         </span>
       </div>
       <div className="my-2">
