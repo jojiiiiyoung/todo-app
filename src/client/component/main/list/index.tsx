@@ -55,9 +55,13 @@ const List: React.FunctionComponent = () => {
   }, [dispatch]);
 
   const handleAdd = (content: string) => {
-    TodoApi.addTodo(content).then((res) => {
-      dispatch?.({ type: ActionTypes.ADD_TODO, payload: { todo: res.data } });
-    });
+    if (!content) {
+      openDialog({ title: '', content: '내용을 입력해주세요' });
+    } else {
+      TodoApi.addTodo(content).then((res) => {
+        dispatch?.({ type: ActionTypes.ADD_TODO, payload: { todo: res.data } });
+      });
+    }
   };
 
   const handleComplete = (id: string) => {
