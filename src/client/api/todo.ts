@@ -1,13 +1,17 @@
 import { AxiosPromise } from 'axios';
 import Api from '.';
+import { DEFAULT_LIST_SIZE } from '../constant';
 
 export default class TodoApi extends Api {
   public static addTodo(content: string): AxiosPromise<ITodoItem> {
     return Api.post('/todos', { content });
   }
 
-  public static getTodos(): AxiosPromise<ITodoItem[]> {
-    return Api.get('/todos');
+  public static getTodos(
+    page: number,
+    size: number = DEFAULT_LIST_SIZE
+  ): AxiosPromise<{ list: ITodoItem[]; totalCount: number; page: number }> {
+    return Api.get(`/todos?${new URLSearchParams({ page: `${page}`, size: `${size}` }).toString()}`);
   }
 
   public static completeTodo(id: string): AxiosPromise<undefined> {

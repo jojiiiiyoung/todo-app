@@ -1,23 +1,21 @@
 import { AxiosError } from 'axios';
 /* eslint-disable react/no-array-index-key */
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 
 import TodoApi from '../../../api/todo';
-import { ActionTypes, store } from '../../../store';
+import { DEFAULT_LIST_SIZE } from '../../../constant';
+import { store } from '../../../store';
+import { ActionTypes } from '../../../store/reducer';
 
 import Pagination from '../../common/pagination';
 import openDialog from '../../common/popup/dialog';
+import usePaging from '../usePaging';
 import TodoItem from './item';
 import Plus from './plus';
 
 const List: React.FunctionComponent = () => {
-  const { data: list, dispatch } = useContext(store);
-
-  useEffect(() => {
-    TodoApi.getTodos().then((res) => {
-      dispatch?.({ type: ActionTypes.GET_TODO_LIST, payload: { data: res.data || [] } });
-    });
-  }, [dispatch]);
+  const { totalCount, dispatch } = useContext(store);
+  const { page, setPage, list } = usePaging();
 
   const handleAdd = (content: string) => {
     if (!content) {
@@ -57,6 +55,10 @@ const List: React.FunctionComponent = () => {
     });
   };
 
+  const handlePageChange = (pageNum: number) => {
+    setPage(pageNum);
+  };
+
   return (
     <>
       <div className="card">
@@ -75,7 +77,7 @@ const List: React.FunctionComponent = () => {
         </div>
       </div>
       <div className="mt-3">
-        <Pagination />
+        <Pagination total={Math.ceil(totalCount / DEFAULT_LIST_SIZE)} current={page} onChange={handlePageChange} />
       </div>
     </>
   );

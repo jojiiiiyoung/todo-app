@@ -1,18 +1,28 @@
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { Document } from 'mongoose';
+import { DEFAULT_LIST_SIZE } from '../constants';
 import Todo, { TodoInterface } from '../models/todo';
 
-export const allTodos = async (_req: Request, res: Response) => {
+export const getTodos = async (req: Request, res: Response) => {
   // eslint-disable-next-line array-callback-return
   try {
-    const todos = await Todo.find({}).populate('related', {
-      _id: 1,
-      isComplete: 1,
-      content: 1,
-      createdAt: 1,
-    });
-    res.send(todos);
+    let page = Number(req.query.page);
+    page = Number.isNaN(page) ? 0 : page;
+    let size = Number(req.query.size);
+    size = Number.isNaN(size) ? DEFAULT_LIST_SIZE : size;
+
+    const todos = await Todo.find({})
+      .populate('related', {
+        _id: 1,
+        isComplete: 1,
+        content: 1,
+        createdAt: 1,
+      })
+      .skip(page * size)
+      .limit(size);
+    const totalCount = await Todo.countDocuments();
+    res.send({ list: todos, totalCount, page, size });
   } catch (err) {
     res.sendStatus(500);
     console.error(err);

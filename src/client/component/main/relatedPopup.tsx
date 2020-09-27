@@ -1,11 +1,14 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { Check2Square, Square, XSquareFill } from 'react-bootstrap-icons';
 import TodoApi from '../../api/todo';
-import { ActionTypes, store } from '../../store';
+import { DEFAULT_LIST_SIZE } from '../../constant';
+import { store } from '../../store';
+import { ActionTypes } from '../../store/reducer';
 import PopupHelper from '../../utils/popupHelper';
 import Pagination from '../common/pagination';
 import PopupContainer from '../common/popup/container';
 import { IPopupOptions } from '../common/popup/manager';
+import usePaging from './usePaging';
 
 const TodoItem = ({
   data,
@@ -41,9 +44,11 @@ const TodoItem = ({
 };
 
 const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem }) => {
+  const { page, setPage, list } = usePaging();
+
   const [selected, setSelected] = useState<string[]>(current.related.map((item) => item._id));
 
-  const { data: list, dispatch } = useContext(store);
+  const { totalCount, dispatch } = useContext(store);
 
   const handleComplete = () => {
     TodoApi.updateRelatedList(current._id, selected).then((res) => {
@@ -54,6 +59,10 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
     if (onClose) {
       onClose();
     }
+  };
+
+  const handlePageChange = (pageNum: number) => {
+    setPage(pageNum);
   };
 
   return (
@@ -68,7 +77,7 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
           onDeselect={(id: string) => setSelected(selected.filter((itemId) => itemId !== id))}
         />
       ))}
-      <Pagination />
+      <Pagination total={Math.ceil(totalCount / DEFAULT_LIST_SIZE)} current={page} onChange={handlePageChange} />
       <div>
         <button type="button" onClick={handleComplete}>
           완료

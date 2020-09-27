@@ -12,3 +12,5 @@ export const getHash = (length = 10) => {
 export const formatDate = (date: number | Date | string): string => {
   return new Date(date).toISOString().slice(0, 10);
 };
+
+export const sortByAscending = (a: number, b: number) => a - b;
