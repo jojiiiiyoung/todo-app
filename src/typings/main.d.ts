@@ -1,8 +1,7 @@
 interface ITodoItem {
   _id: string;
-  id: number;
   isComplete: boolean;
   content: string;
-  related: number[];
+  related: ITodoItem[];
   createdAt: number;
 }

@@ -15,6 +15,7 @@ export enum ActionTypes {
   ADD_TODO = 'ADD_TODO',
   COMPLETE_TODO = 'COMPLETE_TODO',
   UNCOMPLETE_TODO = 'UNCOMPLETE_TODO',
+  UPDATE_RELATED_LIST = 'UPDATE_RELATED_LIST',
 }
 
 const StateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -28,7 +29,7 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
       case ActionTypes.ADD_TODO:
         return {
           ...originState,
-          data: [action.payload.todo, ...originState.data],
+          data: [...originState.data, action.payload.todo],
         };
       case ActionTypes.COMPLETE_TODO: {
         const index = originState.data.findIndex((item) => item._id === action.payload.id);
@@ -47,6 +48,20 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
         return originState;
       }
       case ActionTypes.UNCOMPLETE_TODO: {
+        return {
+          ...originState,
+          data: originState.data.map((item) => {
+            if (item._id === action.payload.id || item.related?.find((elem) => elem._id === action.payload.id)) {
+              return {
+                ...item,
+                isComplete: false,
+              };
+            }
+            return item;
+          }),
+        };
+      }
+      case ActionTypes.UPDATE_RELATED_LIST: {
         const index = originState.data.findIndex((item) => item._id === action.payload.id);
 
         if (index >= 0) {
@@ -54,7 +69,7 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
             ...originState,
             data: [
               ...originState.data.slice(0, index),
-              { ...originState.data[index], isComplete: false },
+              { ...originState.data[index], related: action.payload.related },
               ...originState.data.slice(index + 1),
             ],
           };
