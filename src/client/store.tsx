@@ -69,7 +69,19 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
             ...originState,
             data: [
               ...originState.data.slice(0, index),
-              { ...originState.data[index], related: action.payload.related },
+              {
+                ...originState.data[index],
+                related: originState.data.reduce((arr, item) => {
+                  if (action.payload.related.includes(item._id)) {
+                    arr.push({
+                      ...item,
+                      related: [],
+                    });
+                  }
+
+                  return arr;
+                }, [] as ITodoItem[]),
+              },
               ...originState.data.slice(index + 1),
             ],
           };

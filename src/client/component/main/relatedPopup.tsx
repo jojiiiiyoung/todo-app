@@ -48,7 +48,7 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
   const handleComplete = () => {
     TodoApi.updateRelatedList(current._id, selected).then((res) => {
       if (res.status === 200) {
-        dispatch?.({ type: ActionTypes.UPDATE_RELATED_LIST, payload: { id: current, related: selected } });
+        dispatch?.({ type: ActionTypes.UPDATE_RELATED_LIST, payload: { id: current._id, related: selected } });
       }
     });
     if (onClose) {
