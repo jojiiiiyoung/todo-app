@@ -16,6 +16,7 @@ export enum ActionTypes {
   COMPLETE_TODO = 'COMPLETE_TODO',
   UNCOMPLETE_TODO = 'UNCOMPLETE_TODO',
   UPDATE_RELATED_LIST = 'UPDATE_RELATED_LIST',
+  UPDATE_CONTENT = 'UPDATE_CONTENT',
 }
 
 const StateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -81,6 +82,25 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
 
                   return arr;
                 }, [] as ITodoItem[]),
+              },
+              ...originState.data.slice(index + 1),
+            ],
+          };
+        }
+
+        return originState;
+      }
+      case ActionTypes.UPDATE_CONTENT: {
+        const index = originState.data.findIndex((item) => item._id === action.payload.id);
+
+        if (index >= 0) {
+          return {
+            ...originState,
+            data: [
+              ...originState.data.slice(0, index),
+              {
+                ...originState.data[index],
+                content: action.payload.content,
               },
               ...originState.data.slice(index + 1),
             ],
