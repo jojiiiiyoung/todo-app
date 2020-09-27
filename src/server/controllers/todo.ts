@@ -60,7 +60,7 @@ export const updateTodo = async (req: Request, res: Response) => {
 
       if (isComplete) {
         if (todo.related.some((t: TodoInterface) => !t.isComplete)) {
-          res.sendStatus(400);
+          res.status(400).send('연관된 TODO 중 마무리되지 않은 TODO가 있습니다.');
         } else {
           Todo.findByIdAndUpdate(req.params.id, req.body, (err: any) => {
             if (err) {

@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 /* eslint-disable react/no-array-index-key */
 import React, { useContext, useEffect } from 'react';
 import { Check2Square, PlusCircle, Square } from 'react-bootstrap-icons';
@@ -5,6 +6,7 @@ import TodoApi from '../../../api/todo';
 import { ActionTypes, store } from '../../../store';
 import { formatDate } from '../../../utils';
 import Pagination from '../../common/pagination';
+import openDialog from '../../common/popup/dialog';
 import openRelatedPopup from '../relatedPopup';
 import Plus from './plus';
 
@@ -59,18 +61,18 @@ const List: React.FunctionComponent = () => {
   };
 
   const handleComplete = (id: string) => {
-    TodoApi.completeTodo(id).then((res) => {
-      if (res.status === 200) {
+    TodoApi.completeTodo(id)
+      .then(() => {
         dispatch?.({ type: ActionTypes.COMPLETE_TODO, payload: { id } });
-      }
-    });
+      })
+      .catch((e: AxiosError) => {
+        openDialog({ content: e.response?.data || '', title: '' });
+      });
   };
 
   const handleUnComplete = (id: string) => {
-    TodoApi.uncompleteTodo(id).then((res) => {
-      if (res.status === 200) {
-        dispatch?.({ type: ActionTypes.UNCOMPLETE_TODO, payload: { id } });
-      }
+    TodoApi.uncompleteTodo(id).then(() => {
+      dispatch?.({ type: ActionTypes.UNCOMPLETE_TODO, payload: { id } });
     });
   };
 
