@@ -11,18 +11,34 @@ export const getTodos = async (req: Request, res: Response) => {
     page = Number.isNaN(page) ? 0 : page;
     let size = Number(req.query.size);
     size = Number.isNaN(size) ? DEFAULT_LIST_SIZE : size;
+    const sortingType: string = req.query.sortingType as string;
 
-    const todos = await Todo.find({})
-      .populate('related', {
-        _id: 1,
-        isComplete: 1,
-        content: 1,
-        createdAt: 1,
-      })
-      .skip(page * size)
-      .limit(size);
     const totalCount = await Todo.countDocuments();
-    res.send({ list: todos, totalCount, page, size });
+    if (sortingType === 'complete') {
+      const todos = await Todo.find({})
+        .populate('related', {
+          _id: 1,
+          isComplete: 1,
+          content: 1,
+          createdAt: 1,
+        })
+        .sort({ isComplete: -1 })
+        .skip(page * size)
+        .limit(size);
+      res.send({ list: todos, totalCount, page, size });
+    } else {
+      const todos = await Todo.find({})
+        .populate('related', {
+          _id: 1,
+          isComplete: 1,
+          content: 1,
+          createdAt: 1,
+        })
+        .sort(sortingType ? { [sortingType]: -1 } : {})
+        .skip(page * size)
+        .limit(size);
+      res.send({ list: todos, totalCount, page, size });
+    }
   } catch (err) {
     res.sendStatus(500);
     console.error(err);
