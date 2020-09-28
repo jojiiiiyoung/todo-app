@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 /* eslint-disable react/no-array-index-key */
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 
 import TodoApi from '../../../api/todo';
 import { DEFAULT_LIST_SIZE } from '../../../constant';
@@ -14,8 +14,36 @@ import TodoItem from './item';
 import Plus from './plus';
 
 const List: React.FunctionComponent = () => {
-  const { totalCount, dispatch } = useContext(store);
-  const { page, setPage, list } = usePaging();
+  const { totalCount, data, pages, sortingType, search, dispatch } = useContext(store);
+  const fetchData = useCallback(
+    (pageNum = 0) => {
+      TodoApi.getTodos(pageNum, DEFAULT_LIST_SIZE, sortingType).then((res) => {
+        dispatch?.({
+          type: ActionTypes.GET_TODO_LIST,
+          payload: { data: res.data.list || [], page: res.data.page, totalCount: res.data.totalCount },
+        });
+      });
+    },
+    [sortingType, dispatch]
+  );
+
+  const fetchSearchData = useCallback(
+    (pageNum = 0) => {
+      TodoApi.getSearch(pageNum, DEFAULT_LIST_SIZE, search?.query || '', sortingType).then((res) => {
+        dispatch?.({
+          type: ActionTypes.GET_SEARCH_DATA,
+          payload: { data: res.data.list || [], page: res.data.page, totalCount: res.data.totalCount },
+        });
+      });
+    },
+    [sortingType, search, dispatch]
+  );
+
+  const { page, setPage, list } = usePaging(
+    search && search.query
+      ? { data: search.data, pages: search.pages, fetchData: fetchSearchData }
+      : { data, pages, fetchData }
+  );
 
   const handleAdd = (content: string) => {
     if (!content) {
@@ -77,7 +105,11 @@ const List: React.FunctionComponent = () => {
         </div>
       </div>
       <div className="mt-3">
-        <Pagination total={Math.ceil(totalCount / DEFAULT_LIST_SIZE)} current={page} onChange={handlePageChange} />
+        <Pagination
+          total={Math.ceil((search && search.query ? search.totalCount : totalCount) / DEFAULT_LIST_SIZE)}
+          current={page}
+          onChange={handlePageChange}
+        />
       </div>
     </>
   );

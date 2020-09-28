@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { Check2Square, Square, XSquareFill } from 'react-bootstrap-icons';
 import TodoApi from '../../api/todo';
 import { DEFAULT_LIST_SIZE } from '../../constant';
@@ -44,11 +44,21 @@ const TodoItem = ({
 };
 
 const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem }) => {
-  const { page, setPage, list } = usePaging();
+  const { totalCount, sortingType, data, pages, dispatch } = useContext(store);
+  const fetchData = useCallback(
+    (pageNum = 0) => {
+      TodoApi.getTodos(pageNum, DEFAULT_LIST_SIZE, sortingType).then((res) => {
+        dispatch?.({
+          type: ActionTypes.GET_TODO_LIST,
+          payload: { data: res.data.list || [], page: res.data.page, totalCount: res.data.totalCount },
+        });
+      });
+    },
+    [sortingType, dispatch]
+  );
+  const { page, setPage, list } = usePaging({ data, pages, fetchData });
 
   const [selected, setSelected] = useState<string[]>(current.related.map((item) => item._id));
-
-  const { totalCount, dispatch } = useContext(store);
 
   const handleComplete = () => {
     TodoApi.updateRelatedList(current._id, selected).then((res) => {

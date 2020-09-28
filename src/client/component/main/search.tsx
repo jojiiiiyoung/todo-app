@@ -1,11 +1,36 @@
-import React from 'react';
-import { Search as SearchIcon } from 'react-bootstrap-icons';
+import React, { useContext, useState } from 'react';
+import { Search as SearchIcon, XCircle } from 'react-bootstrap-icons';
+import { store } from '../../store';
+import { ActionTypes } from '../../store/reducer';
 
 const Search: React.FunctionComponent = () => {
+  const { search, dispatch } = useContext(store);
+  const [query, setQuery] = useState<string>(search?.query || '');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.currentTarget.value);
+  };
+
+  const clearQuery = () => {
+    setQuery('');
+    dispatch?.({ type: ActionTypes.CLEAR_SEARCH_DATA });
+  };
+
+  const startSearch = () => {
+    dispatch?.({ type: ActionTypes.START_SEARCH, payload: { query } });
+  };
+
   return (
     <div className="d-flex">
-      <input type="text" className="flex-fill" placeholder="검색" />
-      <button type="button" className="btn btn-outline-secondary align-middle h-100">
+      <div className="position-relative flex-fill">
+        <input type="text" className="w-100 h-100 pl-2 pr-5" placeholder="검색" value={query} onChange={handleChange} />
+        {query ? (
+          <button type="button" className="rightside h-100" onClick={clearQuery}>
+            <XCircle />
+          </button>
+        ) : null}
+      </div>
+      <button type="button" className="btn btn-outline-secondary align-middle h-100" onClick={startSearch}>
         <SearchIcon />
       </button>
     </div>

@@ -8,6 +8,12 @@ interface IState {
   pages: number[];
   sortingType?: SortingTypes;
   dispatch?: Dispatch<any>;
+  search?: {
+    query: string;
+    pages: number[];
+    data: ITodoItemWithPage[];
+    totalCount: number;
+  };
 }
 
 export const INITIAL_STATE: IState = { data: [], pages: [], totalCount: 0 };
@@ -21,9 +27,12 @@ export enum ActionTypes {
   UPDATE_CONTENT = 'UPDATE_CONTENT',
   DELETE_TODO = 'DELETE_TODO',
   CHANGE_SORTING_TYPE = 'CHANGE_SORTING_TYPE',
+  GET_SEARCH_DATA = 'GET_SEARCH_DATA',
+  CLEAR_SEARCH_DATA = 'CLEAR_SEARCH_DATA',
+  START_SEARCH = 'START_SEARCH',
 }
 
-export const reducer = (state: IState, action: { type: ActionTypes; payload: any }) => {
+export const reducer = (state: IState, action: { type: ActionTypes; payload: any }): IState => {
   switch (action.type) {
     case ActionTypes.GET_TODO_LIST: {
       const { page, data, totalCount } = action.payload;
@@ -178,10 +187,55 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
       if (state.sortingType !== action.payload.sortingType) {
         return {
           ...INITIAL_STATE,
+          search: state.search ? { query: state.search.query, data: [], pages: [], totalCount: 0 } : undefined,
           sortingType: action.payload.sortingType,
         };
       }
       return state;
+    }
+    case ActionTypes.START_SEARCH: {
+      return {
+        ...state,
+        search: {
+          query: action.payload.query,
+          data: [],
+          pages: [],
+          totalCount: 0,
+        },
+      };
+    }
+    case ActionTypes.GET_SEARCH_DATA: {
+      const { page, data } = action.payload;
+
+      const greaterPage = state.search?.pages.find((num) => num > page);
+      let nextIndex = state.search?.data.length || 0;
+
+      if (greaterPage && state.search?.data) {
+        nextIndex = state.search.data.findIndex((item) => item.page === greaterPage);
+      }
+
+      return {
+        ...state,
+        search: {
+          query: state.search?.query || '',
+          pages: (state.search?.pages || []).concat([action.payload.page]).sort(sortByAscending),
+          data:
+            (state.search?.data || []).length === 0
+              ? data.map((item: ITodoItem) => ({ ...item, page }))
+              : [
+                  ...(state.search?.data || []).slice(0, nextIndex >= 0 ? nextIndex : 0),
+                  ...data.map((item: ITodoItem) => ({ ...item, page })),
+                  ...(state.search?.data || []).slice(nextIndex, state.data.length),
+                ],
+          totalCount: action.payload.totalCount,
+        },
+      };
+    }
+    case ActionTypes.CLEAR_SEARCH_DATA: {
+      return {
+        ...state,
+        search: undefined,
+      };
     }
     default:
       throw new Error();

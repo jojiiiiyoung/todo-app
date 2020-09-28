@@ -21,6 +21,22 @@ export default class TodoApi extends Api {
     );
   }
 
+  public static getSearch(
+    page: number,
+    size: number = DEFAULT_LIST_SIZE,
+    query: string,
+    sortingType?: SortingTypes
+  ): AxiosPromise<{ list: ITodoItem[]; totalCount: number; page: number }> {
+    return Api.get(
+      `/todos/search?${new URLSearchParams({
+        page: `${page}`,
+        size: `${size}`,
+        query,
+        ...(sortingType ? { sortingType } : {}),
+      }).toString()}`
+    );
+  }
+
   public static completeTodo(id: string): AxiosPromise<undefined> {
     return Api.patch(`/todos/${id}`, { isComplete: true });
   }

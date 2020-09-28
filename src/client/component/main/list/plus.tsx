@@ -25,7 +25,7 @@ const Plus: React.FunctionComponent<IProps> = ({ onAdd }: IProps) => {
 
   return (
     <div className="position-relative my-4">
-      <button type="button" className="rightside-input align-middle h-100" onClick={handleAdd}>
+      <button type="button" className="rightside align-middle h-100" onClick={handleAdd}>
         <PlusSquare />
       </button>
       <input
