@@ -27,6 +27,8 @@ const usePaging = ({ data, pages, fetchData }: IProps) => {
   useEffect(() => {
     if (pages.includes(page)) {
       setCurrentList(page);
+    } else if (pages.length === 0 && page !== 0) {
+      setPage(0);
     } else {
       fetchData(page);
     }
