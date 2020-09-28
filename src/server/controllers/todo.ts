@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { Document } from 'mongoose';
@@ -12,33 +13,51 @@ export const getTodos = async (req: Request, res: Response) => {
     let size = Number(req.query.size);
     size = Number.isNaN(size) ? DEFAULT_LIST_SIZE : size;
     const sortingType: string = req.query.sortingType as string;
+    const sorting = sortingType ? (sortingType === 'complete' ? { isComplete: -1 } : { [sortingType]: -1 }) : {};
 
     const totalCount = await Todo.countDocuments();
-    if (sortingType === 'complete') {
-      const todos = await Todo.find({})
-        .populate('related', {
-          _id: 1,
-          isComplete: 1,
-          content: 1,
-          createdAt: 1,
-        })
-        .sort({ isComplete: -1 })
-        .skip(page * size)
-        .limit(size);
-      res.send({ list: todos, totalCount, page, size });
-    } else {
-      const todos = await Todo.find({})
-        .populate('related', {
-          _id: 1,
-          isComplete: 1,
-          content: 1,
-          createdAt: 1,
-        })
-        .sort(sortingType ? { [sortingType]: -1 } : {})
-        .skip(page * size)
-        .limit(size);
-      res.send({ list: todos, totalCount, page, size });
-    }
+
+    const todos = await Todo.find({})
+      .populate('related', {
+        _id: 1,
+        isComplete: 1,
+        content: 1,
+        createdAt: 1,
+      })
+      .sort(sorting)
+      .skip(page * size)
+      .limit(size);
+    res.send({ list: todos, totalCount, page, size });
+  } catch (err) {
+    res.sendStatus(500);
+    console.error(err);
+  }
+};
+
+export const searchTodos = async (req: Request, res: Response) => {
+  // eslint-disable-next-line array-callback-return
+  try {
+    let page = Number(req.query.page);
+    page = Number.isNaN(page) ? 0 : page;
+    let size = Number(req.query.size);
+    size = Number.isNaN(size) ? DEFAULT_LIST_SIZE : size;
+    const sortingType: string = req.query.sortingType as string;
+    const query = new RegExp(req.query.query as string);
+
+    const sorting = sortingType ? (sortingType === 'complete' ? { isComplete: -1 } : { [sortingType]: -1 }) : {};
+
+    const totalCount = await Todo.count({ content: query });
+    const todos = await Todo.find({ content: query })
+      .populate('related', {
+        _id: 1,
+        isComplete: 1,
+        content: 1,
+        createdAt: 1,
+      })
+      .sort(sorting)
+      .skip(page * size)
+      .limit(size);
+    res.send({ list: todos, totalCount, page, size });
   } catch (err) {
     res.sendStatus(500);
     console.error(err);
