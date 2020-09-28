@@ -1,5 +1,4 @@
 import { AxiosError } from 'axios';
-/* eslint-disable react/no-array-index-key */
 import React, { useCallback, useContext } from 'react';
 
 import TodoApi from '../../../api/todo';
@@ -91,7 +90,7 @@ const List: React.FunctionComponent = () => {
     <>
       <div className="card">
         <div className="card-body">
-          <Plus onAdd={handleAdd} key="plus" />
+          <Plus onAdd={handleAdd} key="plus" disabled={!!search?.query} />
           {list.map((item) => (
             <TodoItem
               data={item}

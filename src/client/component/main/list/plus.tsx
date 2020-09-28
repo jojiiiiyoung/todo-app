@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { PlusSquare } from 'react-bootstrap-icons';
 
 interface IProps {
+  disabled: boolean;
   onAdd: (content: string) => void;
 }
 
-const Plus: React.FunctionComponent<IProps> = ({ onAdd }: IProps) => {
+const Plus: React.FunctionComponent<IProps> = ({ disabled, onAdd }: IProps) => {
   const [content, setContent] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -25,7 +26,7 @@ const Plus: React.FunctionComponent<IProps> = ({ onAdd }: IProps) => {
 
   return (
     <div className="position-relative my-4">
-      <button type="button" className="rightside align-middle h-100" onClick={handleAdd}>
+      <button type="button" className="rightside align-middle h-100" disabled={disabled} onClick={handleAdd}>
         <PlusSquare />
       </button>
       <input
@@ -35,6 +36,7 @@ const Plus: React.FunctionComponent<IProps> = ({ onAdd }: IProps) => {
         value={content}
         onChange={handleChange}
         onKeyPress={handleKeyPress}
+        readOnly={disabled}
       />
     </div>
   );
