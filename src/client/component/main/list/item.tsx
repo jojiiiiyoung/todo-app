@@ -58,20 +58,27 @@ const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncompl
         {edit ? (
           <EditInput content={data.content} onEdit={handleEdit} />
         ) : (
-          <span className="flex-fill">{data.content}</span>
+          <span className="flex-fill text-truncate">{data.content}</span>
         )}
+        <div className="mr-2">
+          <div>
+            <small>등록일: {formatDate(data.createdAt)}</small>
+          </div>
+          <div>
+            <small>수정일: {formatDate(data.updatedAt)}</small>
+          </div>
+        </div>
         <span>
-          <span className="mr-2">{formatDate(data.createdAt)}</span>
           <PencilFill className="mx-2" onClick={() => setEdit(true)} />
           <TrashFill onClick={() => onDelete(data._id)} />
         </span>
       </div>
-      <div className="my-2">
+      <div className="my-2 d-flex">
         연관 리스트:{' '}
         {data.related.map((item) => (
-          <span className="mr-2" key={item._id}>
+          <div className="mr-2 w-25 text-truncate" key={item._id}>
             {item.content}
-          </span>
+          </div>
         ))}
         <PlusCircle className="mr-2" onClick={() => openRelatedPopup(data)} />
       </div>

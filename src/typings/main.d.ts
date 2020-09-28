@@ -5,6 +5,7 @@ interface ITodoItem {
   content: string;
   related: ITodoItem[];
   createdAt: number;
+  updatedAt: number;
 }
 
 interface ITodoItemWithPage extends ITodoItem {
