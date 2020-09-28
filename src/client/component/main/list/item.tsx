@@ -51,9 +51,13 @@ const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncompl
     <div>
       <div className="d-flex align-items-center">
         {data.isComplete ? (
-          <Check2Square className="mr-2" onClick={handleUncomplete} />
+          <button type="button" onClick={handleUncomplete}>
+            <Check2Square className="mr-2" onClick={handleUncomplete} />
+          </button>
         ) : (
-          <Square className="mr-2" onClick={handleComplete} />
+          <button data-testid="toggleButton" onClick={handleComplete} type="button">
+            <Square className="mr-2" />
+          </button>
         )}
         {edit ? (
           <EditInput content={data.content} onEdit={handleEdit} />
@@ -69,8 +73,12 @@ const TodoItem: React.FunctionComponent<IProps> = ({ data, onComplete, onUncompl
           </div>
         </div>
         <span>
-          <PencilFill className="mx-2" onClick={() => setEdit(true)} />
-          <TrashFill onClick={() => onDelete(data._id)} />
+          <button type="button" onClick={() => setEdit(true)} className="mx-2" data-testid="editButton">
+            <PencilFill />
+          </button>
+          <button type="button" onClick={() => onDelete(data._id)} data-testid="deleteButton">
+            <TrashFill />
+          </button>
         </span>
       </div>
       <div className="my-2 d-flex">

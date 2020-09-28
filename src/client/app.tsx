@@ -15,7 +15,7 @@ const App: React.FunctionComponent = () => {
   return (
     <StateProvider>
       <PopupManager bind={PopupHelper.bind} />
-      <div className="page">
+      <div className="page" data-testid="mainContainer">
         <Main />
       </div>
     </StateProvider>
