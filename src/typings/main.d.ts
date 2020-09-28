@@ -10,3 +10,5 @@ interface ITodoItem {
 interface ITodoItemWithPage extends ITodoItem {
   page: number;
 }
+
+type SortingTypes = 'createdAt' | 'updatedAt' | 'complete';

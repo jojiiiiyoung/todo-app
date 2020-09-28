@@ -9,9 +9,16 @@ export default class TodoApi extends Api {
 
   public static getTodos(
     page: number,
-    size: number = DEFAULT_LIST_SIZE
+    size: number = DEFAULT_LIST_SIZE,
+    sortingType?: SortingTypes
   ): AxiosPromise<{ list: ITodoItem[]; totalCount: number; page: number }> {
-    return Api.get(`/todos?${new URLSearchParams({ page: `${page}`, size: `${size}` }).toString()}`);
+    return Api.get(
+      `/todos?${new URLSearchParams({
+        page: `${page}`,
+        size: `${size}`,
+        ...(sortingType ? { sortingType } : {}),
+      }).toString()}`
+    );
   }
 
   public static completeTodo(id: string): AxiosPromise<undefined> {

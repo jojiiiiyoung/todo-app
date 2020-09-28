@@ -6,6 +6,7 @@ interface IState {
   data: ITodoItemWithPage[];
   totalCount: number;
   pages: number[];
+  sortingType?: SortingTypes;
   dispatch?: Dispatch<any>;
 }
 
@@ -19,6 +20,7 @@ export enum ActionTypes {
   UPDATE_RELATED_LIST = 'UPDATE_RELATED_LIST',
   UPDATE_CONTENT = 'UPDATE_CONTENT',
   DELETE_TODO = 'DELETE_TODO',
+  CHANGE_SORTING_TYPE = 'CHANGE_SORTING_TYPE',
 }
 
 export const reducer = (state: IState, action: { type: ActionTypes; payload: any }) => {
@@ -50,6 +52,7 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
     case ActionTypes.ADD_TODO: {
       const lastPage = Math.floor(state.totalCount / DEFAULT_LIST_SIZE);
       if (
+        (!state.sortingType || state.sortingType === 'complete') &&
         state.pages.includes(lastPage) &&
         (state.totalCount === 0 || lastPage * DEFAULT_LIST_SIZE < state.totalCount)
       ) {
@@ -65,6 +68,16 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
           ],
         };
       }
+
+      if (state.sortingType === 'createdAt' || state.sortingType === 'updatedAt') {
+        return {
+          ...state,
+          data: [],
+          pages: [],
+          totalCount: 0,
+        };
+      }
+
       return {
         ...state,
         totalCount: state.totalCount + 1,
@@ -157,6 +170,15 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
           ...state,
           data: state.data.slice(0, firstIndex),
           pages: state.pages.filter((num) => num < page),
+        };
+      }
+      return state;
+    }
+    case ActionTypes.CHANGE_SORTING_TYPE: {
+      if (state.sortingType !== action.payload.sortingType) {
+        return {
+          ...INITIAL_STATE,
+          sortingType: action.payload.sortingType,
         };
       }
       return state;
