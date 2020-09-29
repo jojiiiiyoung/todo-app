@@ -50,7 +50,7 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
       TodoApi.getTodos(pageNum, DEFAULT_LIST_SIZE, sortingType).then((res) => {
         dispatch?.({
           type: ActionTypes.GET_TODO_LIST,
-          payload: { data: res.data.list || [], page: res.data.page, totalCount: res.data.totalCount },
+          payload: { data: res.list || [], page: res.page, totalCount: res.totalCount },
         });
       });
     },
@@ -61,10 +61,8 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
   const [selected, setSelected] = useState<string[]>(current.related.map((item) => item._id));
 
   const handleComplete = () => {
-    TodoApi.updateRelatedList(current._id, selected).then((res) => {
-      if (res.status === 200) {
-        dispatch?.({ type: ActionTypes.UPDATE_RELATED_LIST, payload: { id: current._id, related: selected } });
-      }
+    TodoApi.updateRelatedList(current._id, selected).then(() => {
+      dispatch?.({ type: ActionTypes.UPDATE_RELATED_LIST, payload: { id: current._id, related: selected } });
     });
     if (onClose) {
       onClose();

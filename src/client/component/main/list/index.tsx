@@ -19,7 +19,7 @@ const List: React.FunctionComponent = () => {
       TodoApi.getTodos(pageNum, DEFAULT_LIST_SIZE, sortingType).then((res) => {
         dispatch?.({
           type: ActionTypes.GET_TODO_LIST,
-          payload: { data: res.data.list || [], page: res.data.page, totalCount: res.data.totalCount },
+          payload: { data: res.list || [], page: res.page, totalCount: res.totalCount },
         });
       });
     },
@@ -31,7 +31,7 @@ const List: React.FunctionComponent = () => {
       TodoApi.getSearch(pageNum, DEFAULT_LIST_SIZE, search?.query || '', sortingType).then((res) => {
         dispatch?.({
           type: ActionTypes.GET_SEARCH_DATA,
-          payload: { data: res.data.list || [], page: res.data.page, totalCount: res.data.totalCount },
+          payload: { data: res.list || [], page: res.page, totalCount: res.totalCount },
         });
       });
     },
@@ -49,7 +49,7 @@ const List: React.FunctionComponent = () => {
       openDialog({ title: '', content: '내용을 입력해주세요' });
     } else {
       TodoApi.addTodo(content).then((res) => {
-        dispatch?.({ type: ActionTypes.ADD_TODO, payload: { todo: res.data } });
+        dispatch?.({ type: ActionTypes.ADD_TODO, payload: { todo: res } });
       });
     }
   };
