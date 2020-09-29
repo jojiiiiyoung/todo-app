@@ -4,14 +4,13 @@ import { fireEvent, render } from '@testing-library/react';
 import TodoItem from '../list/item';
 
 describe('<TodoItem />', () => {
-  const sampleTodo: ITodoItemWithPage = {
+  const sampleTodo: ITodoItem = {
     _id: '1',
     content: 'test',
     isComplete: false,
     related: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    page: 0,
   };
 
   const setup = (props: any = {}) => {

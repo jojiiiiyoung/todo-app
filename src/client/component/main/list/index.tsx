@@ -5,6 +5,7 @@ import TodoApi from '../../../api/todo';
 import { DEFAULT_LIST_SIZE } from '../../../constant';
 import { store } from '../../../store';
 import { ActionTypes } from '../../../store/reducer';
+import Loading from '../../common/loading';
 
 import Pagination from '../../common/pagination';
 import openDialog from '../../common/popup/dialog';
@@ -13,7 +14,7 @@ import TodoItem from './item';
 import Plus from './plus';
 
 const List: React.FunctionComponent = () => {
-  const { totalCount, data, pages, sortingType, search, dispatch } = useContext(store);
+  const { totalCount, data, sortingType, search, dispatch } = useContext(store);
   const fetchData = useCallback(
     (pageNum = 0) => {
       TodoApi.getTodos(pageNum, DEFAULT_LIST_SIZE, sortingType).then((res) => {
@@ -38,10 +39,8 @@ const List: React.FunctionComponent = () => {
     [sortingType, search, dispatch]
   );
 
-  const { page, setPage, list } = usePaging(
-    search && search.query
-      ? { data: search.data, pages: search.pages, fetchData: fetchSearchData }
-      : { data, pages, fetchData }
+  const { page, setPage } = usePaging(
+    search && search.query ? { data: search.data, fetchData: fetchSearchData } : { data, fetchData }
   );
 
   const handleAdd = (content: string) => {
@@ -91,16 +90,22 @@ const List: React.FunctionComponent = () => {
       <div className="card">
         <div className="card-body">
           <Plus onAdd={handleAdd} key="plus" disabled={!!search?.query} />
-          {list.map((item) => (
-            <TodoItem
-              data={item}
-              key={item._id}
-              onComplete={handleComplete}
-              onUncomplete={handleUnComplete}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
+          <div id="list-content">
+            {!(search && search.query ? search.data[page] : data[page]) ? (
+              <Loading />
+            ) : (
+              (search && search.query ? search.data[page] : data[page]).map((item) => (
+                <TodoItem
+                  data={item}
+                  key={item._id}
+                  onComplete={handleComplete}
+                  onUncomplete={handleUnComplete}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
       <div className="mt-3">

@@ -1,22 +1,19 @@
 import { Dispatch } from 'react';
 import { DEFAULT_LIST_SIZE } from '../constant';
-import { sortByAscending } from '../utils';
 
 interface IState {
-  data: ITodoItemWithPage[];
+  data: { [key: number]: ITodoItem[] };
   totalCount: number;
-  pages: number[];
   sortingType?: SortingTypes;
   dispatch?: Dispatch<any>;
   search?: {
     query: string;
-    pages: number[];
-    data: ITodoItemWithPage[];
+    data: { [key: number]: ITodoItem[] };
     totalCount: number;
   };
 }
 
-export const INITIAL_STATE: IState = { data: [], pages: [], totalCount: 0 };
+export const INITIAL_STATE: IState = { data: {}, totalCount: 0 };
 
 export enum ActionTypes {
   GET_TODO_LIST = 'GET_TODO_LIST',
@@ -32,57 +29,53 @@ export enum ActionTypes {
   START_SEARCH = 'START_SEARCH',
 }
 
+const getTodoIndex = (list: { [key: number]: ITodoItem[] }, id: string) => {
+  const initial: { page: number; index: number } = { page: -1, index: -1 };
+  return Object.keys(list).reduce((obj, key: string) => {
+    const numberKey = Number(key);
+    const index = list[numberKey].findIndex((item) => item._id === id);
+    if (index >= 0) {
+      return { page: numberKey, index };
+    }
+    return obj;
+  }, initial);
+};
+
 export const reducer = (state: IState, action: { type: ActionTypes; payload: any }): IState => {
   switch (action.type) {
     case ActionTypes.GET_TODO_LIST: {
       const { page, data, totalCount } = action.payload;
 
-      const greaterPage = state.pages.find((num) => num > page);
-      let nextIndex = state.data.length;
-
-      if (greaterPage) {
-        nextIndex = state.data.findIndex((item) => item.page === greaterPage);
-      }
-
       return {
         ...state,
         totalCount,
-        pages: state.pages.concat([action.payload.page]).sort(sortByAscending),
-        data:
-          state.data.length === 0
-            ? data.map((item: ITodoItem) => ({ ...item, page }))
-            : [
-                ...state.data.slice(0, nextIndex >= 0 ? nextIndex : 0),
-                ...data.map((item: ITodoItem) => ({ ...item, page })),
-                ...state.data.slice(nextIndex, state.data.length),
-              ],
+        data: {
+          ...state.data,
+          [page]: data,
+        },
       };
     }
     case ActionTypes.ADD_TODO: {
       const lastPage = Math.floor(state.totalCount / DEFAULT_LIST_SIZE);
       if (
         (!state.sortingType || state.sortingType === 'complete') &&
-        state.pages.includes(lastPage) &&
-        (state.totalCount === 0 || lastPage * DEFAULT_LIST_SIZE < state.totalCount)
+        state.data[lastPage] &&
+        state.data[lastPage].length < DEFAULT_LIST_SIZE
       ) {
         return {
           ...state,
           totalCount: state.totalCount + 1,
-          data: [
+          data: {
             ...state.data,
-            {
-              ...action.payload.todo,
-              page: lastPage,
-            },
-          ],
+            [lastPage]: [...(state.data[lastPage] || []), action.payload.todo],
+          },
         };
       }
 
       if (state.sortingType === 'createdAt' || state.sortingType === 'updatedAt') {
         return {
           ...state,
-          data: [],
-          pages: [],
+          data: {},
           totalCount: 0,
         };
       }
@@ -93,92 +86,113 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
       };
     }
     case ActionTypes.COMPLETE_TODO: {
-      const index = state.data.findIndex((item) => item._id === action.payload.id);
+      const { page, index } = getTodoIndex(state.data, action.payload.id);
 
-      if (index >= 0) {
+      if (index >= 0 && page >= 0) {
         return {
           ...state,
-          data: [
-            ...state.data.slice(0, index),
-            { ...state.data[index], isComplete: true },
-            ...state.data.slice(index + 1),
-          ],
+          data: {
+            ...state.data,
+            [page]: [
+              ...state.data[page].slice(0, index),
+              { ...state.data[page][index], isComplete: true },
+              ...state.data[page].slice(index + 1),
+            ],
+          },
         };
       }
 
       return state;
     }
     case ActionTypes.UNCOMPLETE_TODO: {
-      return {
-        ...state,
-        data: state.data.map((item) => {
-          if (item._id === action.payload.id || item.related?.find((elem) => elem._id === action.payload.id)) {
-            return {
-              ...item,
-              isComplete: false,
-            };
-          }
-          return item;
-        }),
-      };
-    }
-    case ActionTypes.UPDATE_RELATED_LIST: {
-      const index = state.data.findIndex((item) => item._id === action.payload.id);
+      const { page, index } = getTodoIndex(state.data, action.payload.id);
 
-      if (index >= 0) {
+      if (index >= 0 && page >= 0) {
         return {
           ...state,
-          data: [
-            ...state.data.slice(0, index),
-            {
-              ...state.data[index],
-              related: state.data.reduce((arr, item) => {
-                if (action.payload.related.includes(item._id)) {
-                  arr.push({
-                    ...item,
-                    related: [],
-                  });
-                }
+          data: {
+            ...state.data,
+            [page]: [
+              ...state.data[page].slice(0, index),
+              { ...state.data[page][index], isComplete: false },
+              ...state.data[page].slice(index + 1),
+            ],
+          },
+        };
+      }
 
-                return arr;
-              }, [] as ITodoItem[]),
-            },
-            ...state.data.slice(index + 1),
-          ],
+      return state;
+    }
+    case ActionTypes.UPDATE_RELATED_LIST: {
+      const { page, index } = getTodoIndex(state.data, action.payload.id);
+
+      if (index >= 0 && page >= 0) {
+        return {
+          ...state,
+          data: {
+            ...state.data,
+            [page]: [
+              ...state.data[page].slice(0, index),
+              {
+                ...state.data[page][index],
+                related: action.payload.related.reduce((arr: ITodoItem[], id: string) => {
+                  const indices = getTodoIndex(state.data, id);
+                  if (indices.page >= 0 && indices.index >= 0) {
+                    const item = state.data[indices.page][indices.index];
+
+                    arr.push({
+                      ...item,
+                      related: [],
+                    });
+                  }
+
+                  return arr;
+                }, [] as ITodoItem[]),
+              },
+              ...state.data[page].slice(index + 1),
+            ],
+          },
         };
       }
 
       return state;
     }
     case ActionTypes.UPDATE_CONTENT: {
-      const index = state.data.findIndex((item) => item._id === action.payload.id);
+      const { page, index } = getTodoIndex(state.data, action.payload.id);
 
-      if (index >= 0) {
+      if (index >= 0 && page >= 0) {
         return {
           ...state,
-          data: [
-            ...state.data.slice(0, index),
-            {
-              ...state.data[index],
-              content: action.payload.content,
-            },
-            ...state.data.slice(index + 1),
-          ],
+          data: {
+            ...state.data,
+            [page]: [
+              ...state.data[page].slice(0, index),
+              { ...state.data[page][index], content: action.payload.content },
+              ...state.data[page].slice(index + 1),
+            ],
+          },
         };
       }
 
       return state;
     }
     case ActionTypes.DELETE_TODO: {
-      const elem = state.data.find((item) => item._id === action.payload.id);
+      const { page } = getTodoIndex(state.data, action.payload.id);
 
-      if (elem) {
-        const { page } = elem;
-        const firstIndex = state.data.findIndex((item) => item.page === page);
+      if (page >= 0) {
+        const data = Object.keys(state.data).reduce((obj, key) => {
+          const numberKey = Number(key);
+
+          if (numberKey < page) {
+            // eslint-disable-next-line no-param-reassign
+            obj[numberKey] = state.data[numberKey];
+          }
+
+          return obj;
+        }, {} as { [key: number]: ITodoItem[] });
         return {
           ...state,
-          data: state.data.slice(0, firstIndex),
-          pages: state.pages.filter((num) => num < page),
+          data,
         };
       }
       return state;
@@ -187,7 +201,7 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
       if (state.sortingType !== action.payload.sortingType) {
         return {
           ...INITIAL_STATE,
-          search: state.search ? { query: state.search.query, data: [], pages: [], totalCount: 0 } : undefined,
+          search: state.search ? { query: state.search.query, data: {}, totalCount: 0 } : undefined,
           sortingType: action.payload.sortingType,
         };
       }
@@ -198,36 +212,24 @@ export const reducer = (state: IState, action: { type: ActionTypes; payload: any
         ...state,
         search: {
           query: action.payload.query,
-          data: [],
-          pages: [],
+          data: {},
           totalCount: 0,
         },
       };
     }
     case ActionTypes.GET_SEARCH_DATA: {
-      const { page, data } = action.payload;
-
-      const greaterPage = state.search?.pages.find((num) => num > page);
-      let nextIndex = state.search?.data.length || 0;
-
-      if (greaterPage && state.search?.data) {
-        nextIndex = state.search.data.findIndex((item) => item.page === greaterPage);
-      }
+      const { page, data, totalCount } = action.payload;
 
       return {
         ...state,
         search: {
+          ...state.search,
           query: state.search?.query || '',
-          pages: (state.search?.pages || []).concat([action.payload.page]).sort(sortByAscending),
-          data:
-            (state.search?.data || []).length === 0
-              ? data.map((item: ITodoItem) => ({ ...item, page }))
-              : [
-                  ...(state.search?.data || []).slice(0, nextIndex >= 0 ? nextIndex : 0),
-                  ...data.map((item: ITodoItem) => ({ ...item, page })),
-                  ...(state.search?.data || []).slice(nextIndex, state.data.length),
-                ],
-          totalCount: action.payload.totalCount,
+          data: {
+            ...state.data,
+            [page]: data,
+          },
+          totalCount,
         },
       };
     }

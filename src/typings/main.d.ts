@@ -8,8 +8,4 @@ interface ITodoItem {
   updatedAt: number;
 }
 
-interface ITodoItemWithPage extends ITodoItem {
-  page: number;
-}
-
 type SortingTypes = 'createdAt' | 'updatedAt' | 'complete';

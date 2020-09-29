@@ -5,6 +5,7 @@ import { DEFAULT_LIST_SIZE } from '../../constant';
 import { store } from '../../store';
 import { ActionTypes } from '../../store/reducer';
 import PopupHelper from '../../utils/popupHelper';
+import Loading from '../common/loading';
 import Pagination from '../common/pagination';
 import PopupContainer from '../common/popup/container';
 import { IPopupOptions } from '../common/popup/manager';
@@ -44,7 +45,7 @@ const TodoItem = ({
 };
 
 const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem }) => {
-  const { totalCount, sortingType, data, pages, dispatch } = useContext(store);
+  const { totalCount, sortingType, data, dispatch } = useContext(store);
   const fetchData = useCallback(
     (pageNum = 0) => {
       TodoApi.getTodos(pageNum, DEFAULT_LIST_SIZE, sortingType).then((res) => {
@@ -56,7 +57,7 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
     },
     [sortingType, dispatch]
   );
-  const { page, setPage, list } = usePaging({ data, pages, fetchData });
+  const { page, setPage } = usePaging({ data, fetchData });
 
   const [selected, setSelected] = useState<string[]>(current.related.map((item) => item._id));
 
@@ -75,16 +76,20 @@ const RelatedPopup = ({ current, onClose }: IPopupOptions & { current: ITodoItem
 
   return (
     <PopupContainer onClose={onClose} title="연관 리스트 추가">
-      {list.map((item) => (
-        <TodoItem
-          key={item._id}
-          current={current}
-          isSelected={selected.includes(item._id)}
-          data={item}
-          onSelect={(id: string) => setSelected([...selected, id])}
-          onDeselect={(id: string) => setSelected(selected.filter((itemId) => itemId !== id))}
-        />
-      ))}
+      {!data[page] ? (
+        <Loading />
+      ) : (
+        data[page].map((item) => (
+          <TodoItem
+            key={item._id}
+            current={current}
+            isSelected={selected.includes(item._id)}
+            data={item}
+            onSelect={(id: string) => setSelected([...selected, id])}
+            onDeselect={(id: string) => setSelected(selected.filter((itemId) => itemId !== id))}
+          />
+        ))
+      )}
       <Pagination total={Math.ceil(totalCount / DEFAULT_LIST_SIZE)} current={page} onChange={handlePageChange} />
       <div>
         <button type="button" onClick={handleComplete}>
