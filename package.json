@@ -73,7 +73,7 @@
     "startServer": "nodemon --exec ts-node src/server/index.ts",
     "buildClient": "node scripts/build.js",
     "dev": "concurrently \"npm run startClient\" \"npm run startServer\"",
-    "start": "concurrently \"npm run buildClient\" \"npm run startServer\"",
+    "start": "npm run buildClient && npm run startServer",
     "test": "node scripts/test.js"
   },
   "browserslist": {
